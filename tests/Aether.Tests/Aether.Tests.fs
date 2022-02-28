@@ -1,20 +1,23 @@
-﻿namespace Aether.Tests
+namespace Aether.Tests
 
 open System
 open Aether
-open Aether.Operators
-open Aether.Testing.Properties
+open Aether.Операторы
+open Aether.Testing.Свойства
 open FsCheck
 open FsCheck.Xunit
 open global.Xunit
 open Swensen.Unquote
 
+type СвойствоAttribute = PropertyAttribute
+type ФактAttribute = FactAttribute
+
 [<AutoOpen>]
 module Data =
-    let chars : Isomorphism<string, char[]> =
+    let chars : Изоморфизм<string, char[]> =
         (fun x -> x.ToCharArray ()), (fun x -> String (x))
 
-    let rev : Isomorphism<char[], char[]> =
+    let rev : Изоморфизм<char[], char[]> =
         Array.rev, Array.rev
 
     let times2 = (*) 2
@@ -25,83 +28,83 @@ module Data =
 
 module ``Built-in Lenses`` =
 
-    [<Property>]
+    [<Свойство>]
     let ``id_ follows the Lens Laws`` (outer : int) inner dummy =
-        Lens.followsLensLaws id_ outer inner dummy times2
+        Линзы.followsLensLaws id_ outer inner dummy times2
 
-    [<Property>]
+    [<Свойство>]
     let ``fst_ follows the Lens Laws`` (outer : int * int) inner dummy =
-        Lens.followsLensLaws fst_ outer inner dummy times2
+        Линзы.followsLensLaws fst_ outer inner dummy times2
 
-    [<Property>]
+    [<Свойство>]
     let ``snd_ follows the Lens Laws`` (outer : int * int) inner dummy =
-        Lens.followsLensLaws snd_ outer inner dummy times2
+        Линзы.followsLensLaws snd_ outer inner dummy times2
 
-    [<Property>]
+    [<Свойство>]
     let ``Map.value_ follows the Lens Laws`` key (outer: Map<string,int>) inner dummy =
-        Lens.followsLensLaws (Map.value_ key) outer inner dummy maybeInt
+        Линзы.followsLensLaws (Map.value_ key) outer inner dummy maybeInt
 
 module ``Built-in Prisms`` =
-    [<Property>]
+    [<Свойство>]
     let ``Choice.choice1Of2_ follows the Prism Laws`` (outer : Choice<int,int>) inner dummy =
-        Prism.followsPrismLaws Choice.choice1Of2_ outer inner dummy times2
+        Призма.followsPrismLaws Choice.choice1Of2_ outer inner dummy times2
 
-    [<Property>]
+    [<Свойство>]
     let ``Choice.choice2Of2_ follows the Prism Laws`` (outer : Choice<int,int>) inner dummy =
-        Prism.followsPrismLaws Choice.choice2Of2_ outer inner dummy times2
+        Призма.followsPrismLaws Choice.choice2Of2_ outer inner dummy times2
 
-    [<Property>]
+    [<Свойство>]
     let ``Result.ok_ follows the Prism Laws`` (outer : Result<int,int>) inner dummy =
-        Prism.followsPrismLaws Result.ok_ outer inner dummy times2
+        Призма.followsPrismLaws Result.ok_ outer inner dummy times2
 
-    [<Property>]
+    [<Свойство>]
     let ``Result.error_ follows the Prism Laws`` (outer : Result<int,int>) inner dummy =
-        Prism.followsPrismLaws Result.error_ outer inner dummy times2
+        Призма.followsPrismLaws Result.error_ outer inner dummy times2
 
-    [<Property>]
+    [<Свойство>]
     let ``Option.value_ follows the Prism Laws`` (outer : int option) inner dummy =
-        Prism.followsPrismLaws Option.value_ outer inner dummy times2
+        Призма.followsPrismLaws Option.value_ outer inner dummy times2
 
-    [<Property>]
+    [<Свойство>]
     let ``List.head_ follows the Prism Laws`` (outer : int list) inner dummy =
-        Prism.followsPrismLaws List.head_ outer inner dummy times2
+        Призма.followsPrismLaws List.head_ outer inner dummy times2
 
-    [<Property>]
+    [<Свойство>]
     let ``List.tail_ follows the Prism Laws`` (outer : int list) inner dummy =
-        Prism.followsPrismLaws List.tail_ outer inner dummy
+        Призма.followsPrismLaws List.tail_ outer inner dummy
 
-    [<Property>]
+    [<Свойство>]
     let ``List.pos_ follows the Prism Laws`` (idx : NonNegativeInt) (outer : int list) inner dummy =
-        Prism.followsPrismLaws (List.pos_ idx.Get) outer inner dummy times2
+        Призма.followsPrismLaws (List.pos_ idx.Get) outer inner dummy times2
 
-    [<Property>]
+    [<Свойство>]
     let ``Map.key_ follows the Prism Laws`` key (outer : Map<string,int>) inner dummy =
-        Prism.followsPrismLaws (Map.key_ key) outer inner dummy int
+        Призма.followsPrismLaws (Map.key_ key) outer inner dummy int
 
 module ``Built-in Isomorphisms`` =
-    [<Property>]
+    [<Свойство>]
     let ``Map.list_ follows the Weak Isomorphism Laws`` (outer : Map<string,int>) inner dummy =
         Isomorphism.followsWeakIsomorphismLaws Map.list_ outer inner dummy
 
-    [<Property>]
+    [<Свойство>]
     let ``Map.array_ follows the Weak Isomorphism Laws`` (outer : Map<string,int>) inner dummy =
         Isomorphism.followsWeakIsomorphismLaws Map.array_ outer inner dummy
 
-    [<Property>]
+    [<Свойство>]
     let ``Array.list_ follows the Isomorphism Laws`` (outer : int []) inner dummy =
         Isomorphism.followsIsomorphismLaws Array.list_ outer inner dummy (List.map times2)
 
-    [<Property>]
+    [<Свойство>]
     let ``List.array_ follows the Isomorphism Laws`` (outer : int list) inner dummy =
         Isomorphism.followsIsomorphismLaws List.array_ outer inner dummy (Array.map times2)
 
-    [<Property>]
+    [<Свойство>]
     let ``Choice.choice1Of2_ mapped through Map(toList/ofList) as a partial isomorphism follows the Weak Partial Isomorphism Laws`` (outer : Choice<Map<string,int>,int>) inner dummy =
-        Epimorphism.followsWeakEpimorphismLaws ((fst Choice.choice1Of2_ >> Option.map Map.toList),(Map.ofList >> Choice1Of2)) outer inner dummy
+        Эпиморфизм.followsWeakEpimorphismLaws ((fst Choice.choice1Of2_ >> Option.map Map.toList),(Map.ofList >> Choice1Of2)) outer inner dummy
 
-    [<Property>]
+    [<Свойство>]
     let ``Choice.choice1Of2_ as a partial isomorphism follows the Partial Isomorphism Laws`` (outer : Choice<int,int>) inner dummy =
-        Epimorphism.followsEpimorphismLaws (fst Choice.choice1Of2_,Choice1Of2) outer inner dummy
+        Эпиморфизм.followsEpimorphismLaws (fst Choice.choice1Of2_,Choice1Of2) outer inner dummy
 
 type MapExample =
     { MyMap : Map<string,string> }
@@ -111,139 +114,139 @@ type MapExample =
             (fun v x -> { x with MyMap = v })
 
 module ``Examplar Usage Tests`` =
-    [<Fact>]
+    [<Факт>]
     let ``Upserting into a Map using a Lens`` () =
         let example = { MyMap = Map.ofList ["TestKey","TestValue"]}
-        let newValue = Lens.map MapExample.myMap_ (Map.add "TestKey2" "OtherValue") example
+        let newValue = Линзы.отобразить MapExample.myMap_ (Map.add "TestKey2" "OtherValue") example
         test <@ newValue.MyMap.["TestKey"] = "TestValue" @>
         test <@ newValue.MyMap.["TestKey2"] = "OtherValue" @>
 
-    [<Fact>]
+    [<Факт>]
     let ``Updating a value not contained in a Map using a Prism`` () =
         let o = MapExample.myMap_ >-> Map.key_ "TestKey2"
         let example = { MyMap = Map.ofList ["TestKey","TestValue"]}
-        let newValue = Prism.set (MapExample.myMap_ >-> Map.key_ "TestKey2") "OtherValue" example
+        let newValue = Призма.установить (MapExample.myMap_ >-> Map.key_ "TestKey2") "OtherValue" example
         test <@ newValue.MyMap.TryFind "TestKey2" = None @>
 
-    [<Fact>]
+    [<Факт>]
     let ``Updating a value contained in a Map using a Prism`` () =
         let example = { MyMap = Map.ofList ["TestKey","TestValue"]}
-        let newValue = Prism.set (MapExample.myMap_ >-> Map.key_ "TestKey") "OtherValue" example
+        let newValue = Призма.установить (MapExample.myMap_ >-> Map.key_ "TestKey") "OtherValue" example
         test <@ newValue.MyMap.["TestKey"] = "OtherValue" @>
 
-    [<Fact>]
+    [<Факт>]
     let ``Prepending an element onto a List using a Lens`` () =
-        test <@ Lens.map id_ (fun l -> "Head" :: l) ["Tail"] = ["Head"; "Tail"] @>
+        test <@ Линзы.отобразить id_ (fun l -> "Head" :: l) ["Tail"] = ["Head"; "Tail"] @>
 
-    [<Fact>]
+    [<Факт>]
     let ``Appending a List onto aanother List using a Lens`` () =
-        test <@ Lens.map id_ (fun l -> l @ ["Tail"]) ["Head"] = ["Head"; "Tail"] @>
+        test <@ Линзы.отобразить id_ (fun l -> l @ ["Tail"]) ["Head"] = ["Head"; "Tail"] @>
 
-    [<Fact>]
+    [<Факт>]
     let ``Setting the head on an empty List using a Prism`` () =
-        test <@ Prism.set List.head_ "Bad" [] = [] @>
+        test <@ Призма.установить List.head_ "Bad" [] = [] @>
 
-    [<Fact>]
+    [<Факт>]
     let ``Setting the head on a non-empty List using a Prism`` () =
-        test <@ Prism.set List.head_ "Good" ["Bad"] = ["Good"] @>
+        test <@ Призма.установить List.head_ "Good" ["Bad"] = ["Good"] @>
 
-    [<Fact>]
+    [<Факт>]
     let ``Setting the tail on an empty List using a Prism`` () =
-        test <@ Prism.set List.tail_ ["Bad"] [] = [] @>
+        test <@ Призма.установить List.tail_ ["Bad"] [] = [] @>
 
-    [<Fact>]
+    [<Факт>]
     let ``Setting the tail on a non-empty List using a Prism`` () =
-        test <@ Prism.set List.tail_ ["Tail"] ["Head"; "Bad"; "Value"] = ["Head"; "Tail"] @>
+        test <@ Призма.установить List.tail_ ["Tail"] ["Head"; "Bad"; "Value"] = ["Head"; "Tail"] @>
 
-    [<Fact>]
+    [<Факт>]
     let ``Setting the tail on a single-element List using a Prism`` () =
-        test <@ Prism.set List.tail_ ["Long"; "Tail"] ["Head"] = ["Head"; "Long"; "Tail"] @>
+        test <@ Призма.установить List.tail_ ["Long"; "Tail"] ["Head"] = ["Head"; "Long"; "Tail"] @>
 
 module ``Basic Lens functions`` =
-    [<Fact>]
+    [<Факт>]
     let ``Lens.get returns correct values`` () =
-        Lens.get fst_ ("Good","Bad") =! "Good"
+        Линзы.получить fst_ ("Good","Bad") =! "Good"
 
-    [<Fact>]
+    [<Факт>]
     let ``Lens.set sets value correctly`` () =
-        Lens.set fst_ "Good" ("Bad",()) =! ("Good",())
+        Линзы.установить fst_ "Good" ("Bad",()) =! ("Good",())
 
-    [<Fact>]
+    [<Факт>]
     let ``Lens.map modifies values correctly`` () =
-        Lens.map fst_ (fun x -> x + x) ("Good",()) =! ("GoodGood",())
+        Линзы.отобразить fst_ (fun x -> x + x) ("Good",()) =! ("GoodGood",())
 
 module ``Basic Prism functions`` =
-    [<Fact>]
+    [<Факт>]
     let ``Prism.get returns correct values for existing values`` () =
-        Prism.get Choice.choice1Of2_ (Choice1Of2 "Good") =! Some "Good"
+        Призма.получить Choice.choice1Of2_ (Choice1Of2 "Good") =! Some "Good"
 
-    [<Fact>]
+    [<Факт>]
     let ``Prism.get returns correct value for missing values`` () =
-        Prism.get Choice.choice2Of2_ (Choice1Of2 "Bad") =! None
+        Призма.получить Choice.choice2Of2_ (Choice1Of2 "Bad") =! None
 
-    [<Fact>]
+    [<Факт>]
     let ``Prism.set returns correct values for existing values`` () =
-        Prism.set Choice.choice1Of2_ "Good" (Choice1Of2 "Bad") =! Choice1Of2 "Good"
+        Призма.установить Choice.choice1Of2_ "Good" (Choice1Of2 "Bad") =! Choice1Of2 "Good"
 
-    [<Fact>]
+    [<Факт>]
     let ``Prism.set returns correct value for missing values`` () =
-        Prism.set Choice.choice2Of2_ "Bad" (Choice1Of2 "Good") =! Choice1Of2 "Good"
+        Призма.установить Choice.choice2Of2_ "Bad" (Choice1Of2 "Good") =! Choice1Of2 "Good"
 
-    [<Fact>]
+    [<Факт>]
     let ``Prism.map modifies values correctly for existing values`` () =
-        Prism.map Choice.choice1Of2_ (fun x -> x + x) (Choice1Of2 "Good") =! Choice1Of2 "GoodGood"
+        Призма.отобразить Choice.choice1Of2_ (fun x -> x + x) (Choice1Of2 "Good") =! Choice1Of2 "GoodGood"
 
-    [<Fact>]
+    [<Факт>]
     let ``Prism.map modifies values correctly for missing values`` () =
-        Prism.map Choice.choice2Of2_ (fun x -> x + x) (Choice1Of2 "Good") =! Choice1Of2 "Good"
+        Призма.отобразить Choice.choice2Of2_ (fun x -> x + x) (Choice1Of2 "Good") =! Choice1Of2 "Good"
 
 module ``Isomorphism composition`` =
     module ``over a Lens`` =
-        [<Fact>]
+        [<Факт>]
         let ``gets value`` () =
-            Lens.get (fst_ >-> chars) ("Good",()) =! [| 'G'; 'o'; 'o'; 'd' |]
+            Линзы.получить (fst_ >-> chars) ("Good",()) =! [| 'G'; 'o'; 'o'; 'd' |]
 
-        [<Fact>]
+        [<Факт>]
         let ``sets value`` () =
-            Lens.set (fst_ >-> chars) [| 'G'; 'o'; 'o'; 'd' |] ("Bad",()) =! ("Good",())
+            Линзы.установить (fst_ >-> chars) [| 'G'; 'o'; 'o'; 'd' |] ("Bad",()) =! ("Good",())
 
-        [<Fact>]
+        [<Факт>]
         let ``gets value over multiple isomorphisms`` () =
-            Lens.get (fst_ >-> chars >-> rev) ("dooG",()) =! [| 'G'; 'o'; 'o'; 'd' |]
+            Линзы.получить (fst_ >-> chars >-> rev) ("dooG",()) =! [| 'G'; 'o'; 'o'; 'd' |]
 
-        [<Fact>]
+        [<Факт>]
         let ``sets value over multiple isomorphisms`` () =
-            Lens.set (fst_ >-> chars >-> rev) [| 'd'; 'o'; 'o'; 'G' |] ("Bad",()) =! ("Good",())
+            Линзы.установить (fst_ >-> chars >-> rev) [| 'd'; 'o'; 'o'; 'G' |] ("Bad",()) =! ("Good",())
 
     module ``over a Prism`` =
-        [<Fact>]
+        [<Факт>]
         let ``gets value when inner exists`` () =
-            Prism.get (Choice.choice1Of2_ >?> chars) (Choice1Of2 "Good") =! Some [| 'G'; 'o'; 'o'; 'd' |]
+            Призма.получить (Choice.choice1Of2_ >?> chars) (Choice1Of2 "Good") =! Some [| 'G'; 'o'; 'o'; 'd' |]
 
-        [<Fact>]
+        [<Факт>]
         let ``gets nothing when inner does not exist`` () =
-            Prism.get (Choice.choice2Of2_ >?> chars) (Choice1Of2 "Bad") =! None
+            Призма.получить (Choice.choice2Of2_ >?> chars) (Choice1Of2 "Bad") =! None
 
-        [<Fact>]
+        [<Факт>]
         let ``sets value when inner exists`` () =
-            Prism.set (Choice.choice1Of2_ >?> chars) [| 'G'; 'o'; 'o'; 'd' |] (Choice1Of2 "Bad") =! Choice1Of2 "Good"
+            Призма.установить (Choice.choice1Of2_ >?> chars) [| 'G'; 'o'; 'o'; 'd' |] (Choice1Of2 "Bad") =! Choice1Of2 "Good"
 
-        [<Fact>]
+        [<Факт>]
         let ``sets nothing when inner does not exist`` () =
-            Prism.set (Choice.choice2Of2_ >?> chars) [| 'B'; 'a'; 'd' |] (Choice1Of2 "Good") =! Choice1Of2 "Good"
+            Призма.установить (Choice.choice2Of2_ >?> chars) [| 'B'; 'a'; 'd' |] (Choice1Of2 "Good") =! Choice1Of2 "Good"
 
-        [<Fact>]
+        [<Факт>]
         let ``gets value when inner exists over multiple isomorphisms`` () =
-            Prism.get (Choice.choice1Of2_ >?> chars >?> rev) (Choice1Of2 "dooG") =! Some [| 'G'; 'o'; 'o'; 'd' |]
+            Призма.получить (Choice.choice1Of2_ >?> chars >?> rev) (Choice1Of2 "dooG") =! Some [| 'G'; 'o'; 'o'; 'd' |]
 
-        [<Fact>]
+        [<Факт>]
         let ``gets nothing when inner does not exist over multiple isomorphisms`` () =
-            Prism.get (Choice.choice2Of2_ >?> chars >?> rev) (Choice1Of2 "daB") =! None
+            Призма.получить (Choice.choice2Of2_ >?> chars >?> rev) (Choice1Of2 "daB") =! None
 
-        [<Fact>]
+        [<Факт>]
         let ``sets value when inner exists over multiple isomorphisms`` () =
-            Prism.set (Choice.choice1Of2_ >?> chars >?> rev) [| 'd'; 'o'; 'o'; 'G' |] (Choice1Of2 "Bad") =! Choice1Of2 "Good"
+            Призма.установить (Choice.choice1Of2_ >?> chars >?> rev) [| 'd'; 'o'; 'o'; 'G' |] (Choice1Of2 "Bad") =! Choice1Of2 "Good"
 
-        [<Fact>]
+        [<Факт>]
         let ``sets nothing when inner does not exist over multiple isomorphisms`` () =
-            Prism.set (Choice.choice2Of2_ >?> chars >?> rev) [| 'd'; 'a'; 'B' |] (Choice1Of2 "Good") =! Choice1Of2 "Good"
+            Призма.установить (Choice.choice2Of2_ >?> chars >?> rev) [| 'd'; 'a'; 'B' |] (Choice1Of2 "Good") =! Choice1Of2 "Good"

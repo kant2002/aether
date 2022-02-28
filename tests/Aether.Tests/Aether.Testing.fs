@@ -5,13 +5,13 @@ open Swensen.Unquote
 
 /// Properties that can be used to evaluate the conformance of Lenses, Prisms,
 /// Isomorphisms, and Epimorphisms to certain invariants.
-module Properties =
+module Свойства =
     /// Lens properties
     [<RequireQualifiedAccess;CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
-    module Lens =
-        let get (g, _) = fun o -> g o
-        let set (_, s) = fun i o -> s i o
-        let map (g, s) = fun f o -> s (f (g o)) o
+    module Линзы =
+        let получить (g, _) = fun o -> g o
+        let установить (_, s) = fun i o -> s i o
+        let отобразить (g, s) = fun f o -> s (f (g o)) o
 
         let getSetIdentityWith lensGet lensSet outer =
             "Get-Set Identity" @| lazy
@@ -31,7 +31,7 @@ module Properties =
                 test <@ lensSet (lensGet outer |> f) outer = lensMap f outer @>
 
         let inline unwrapLens f lens =
-            f (get lens) (set lens)
+            f (получить lens) (установить lens)
 
         /// The Get-Set Identity requires that modifying an entity through a lens by setting a value
         /// to exactly what it was before then nothing happens.
@@ -47,13 +47,13 @@ module Properties =
         /// a value to `a` and then setting the same value to `b` behaves the same as having modified
         /// the original entity by only setting the value to `b`.
         let inline setSetOrderDependence lens =
-            setSetOrderDependenceWith (set lens)
+            setSetOrderDependenceWith (установить lens)
 
         /// The Get-Set to Map Corresponsence requires that modifying an entity through a lens
         /// by getting a value, applying some function `f` to that value and then setting the value to the result
         /// behaves the same as having mapped that function through the lens.
-        let inline getSetMapCorrespondence lens =
-            unwrapLens getSetMapCorrespondenceWith lens (map lens)
+        let inline getSetMapCorrespondence линза =
+            unwrapLens getSetMapCorrespondenceWith линза (отобразить линза)
 
         /// Requires that a lens follows the Lens Laws and is well-behaved:
         /// * Get-Set Identity,
@@ -69,10 +69,10 @@ module Properties =
 
     /// Prism properties
     [<RequireQualifiedAccess;CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
-    module Prism =
-        let get (g, _) = fun o -> g o
-        let set (_, s) = fun i o -> s i o
-        let map (g, s) = fun f o -> Option.map f (g o) |> function | Some i -> s i o | _ -> o
+    module Призма =
+        let получить (g, _) = fun o -> g o
+        let установить (_, s) = fun i o -> s i o
+        let отобразить (g, s) = fun f o -> Option.map f (g o) |> function | Some i -> s i o | _ -> o
 
         let classifyInner innerP =
             Prop.classify (Option.isSome innerP) "has inner"
@@ -105,7 +105,7 @@ module Properties =
             |> classifyInnerWith prismGet outer
 
         let inline unwrapPrism f prism =
-            f (get prism) (set prism)
+            f (получить prism) (установить prism)
 
         /// The Get-Set Identity requires that modifying an entity through a prism by setting a value
         /// to exactly what it was before then nothing happens.
@@ -133,7 +133,7 @@ module Properties =
         /// behaves the same as having mapped that function through the prism.
         /// Classifies evaluation by whether the prism resolves to `Some` on the tested entity.
         let inline getSetMapCorrespondence prism =
-            unwrapPrism getSetMapCorrespondenceWith prism (map prism)
+            unwrapPrism getSetMapCorrespondenceWith prism (отобразить prism)
 
         /// Requires that a prism follows the Prism Laws and is well-behaved:
         /// * Get-Set Identity,
@@ -169,21 +169,21 @@ module Properties =
         /// unidirectional isomorphic operations are sane.
         let inline followsWeakIsomorphismLaws iso outer inner dummy =
             let isoAsLens = asLens iso
-            Lens.getSetIdentity isoAsLens outer .&.
-            Lens.setSetOrderDependence isoAsLens outer inner dummy .&.
+            Линзы.getSetIdentity isoAsLens outer .&.
+            Линзы.setSetOrderDependence isoAsLens outer inner dummy .&.
             roundtripEquality iso outer
 
         /// Requires that an isomorphism demonstrates certain properties to ensure
         /// isomorphic operations in either direction are sane.
         let inline followsIsomorphismLaws iso outer inner dummy f =
-            Lens.followsLensLaws (asLens iso) outer inner dummy f .&.
+            Линзы.followsLensLaws (asLens iso) outer inner dummy f .&.
             roundtripEquality iso outer .&.
             converseRoundtripEquality iso inner
 
-    /// Epimorphism properties
+    /// Свойства эпиморфизма
     [<RequireQualifiedAccess;CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
-    module Epimorphism =
-        let asPrism (f, t) = f, (fun c _ -> t c)
+    module Эпиморфизм =
+        let какПризма (f, t) = f, (fun c _ -> t c)
 
         /// Requires that, if mapping a value through an epimorphism results in a value,
         /// mapping that value back returns a value equivalent to the original.
@@ -201,12 +201,12 @@ module Properties =
         /// Requires that an epimorphism demonstrates minimal properties to ensure
         /// sane operations in one direction.
         let inline followsWeakEpimorphismLaws epi outer inner dummy =
-            Prism.setSetOrderDependence (asPrism epi) outer inner dummy .&.
+            Призма.setSetOrderDependence (какПризма epi) outer inner dummy .&.
             roundtripEquality epi outer
 
         /// Requires that an epimorphism demonstrates minimal properties to ensure
         /// sane operations in both directions.
         let inline followsEpimorphismLaws epi outer inner dummy =
-            Prism.setSetOrderDependence (asPrism epi) outer inner dummy .&.
+            Призма.setSetOrderDependence (какПризма epi) outer inner dummy .&.
             roundtripEquality epi outer .&.
             converseRoundtripEquality epi inner

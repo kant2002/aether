@@ -1,25 +1,25 @@
-﻿module Aether
+module Aether
 
 open System
 
-//  Optics
+//  Оптика
 
-/// Lens from 'a -> 'b.
-type Lens<'a,'b> =
+/// Линза из 'a -> 'b.
+type Линза<'a,'b> =
     ('a -> 'b) * ('b -> 'a -> 'a)
 
-/// Prism from 'a -> 'b.
-type Prism<'a,'b> =
+/// Призма из 'a -> 'b.
+type Призма<'a,'b> =
     ('a -> 'b option) * ('b -> 'a -> 'a)
 
-//  Morphisms
+//  Морфизмы
 
-/// Isomorphism between 'a <> 'b.
-type Isomorphism<'a,'b> =
+/// Изоморфизм между 'a <> 'b.
+type Изоморфизм<'a,'b> =
     ('a -> 'b) * ('b -> 'a)
 
-/// Epimorphism between 'a <> 'b.
-type Epimorphism<'a,'b> =
+/// Эпимрфизм между 'a <> 'b.
+type Эпиморфизм<'a,'b> =
     ('a -> 'b option) * ('b -> 'a)
 
 (* Obsolete
@@ -29,17 +29,17 @@ type Epimorphism<'a,'b> =
 
     To be removed for 9.x releases. *)
 
-/// Partial lens from a -> b
-[<Obsolete ("Use Prism<'a, 'b> instead.")>]
-type PLens<'a,'b> = Prism<'a, 'b>
+/// Частичная линза из a -> b
+[<Obsolete ("Используйте Призма<'a, 'b> вместо этого.")>]
+type PLens<'a,'b> = Призма<'a, 'b>
 
-/// Total isomorphism of a <> b
-[<Obsolete ("Use Isomorphism<'a, 'b> instead.")>]
-type Iso<'a,'b> = Isomorphism<'a, 'b>
+/// Полный изоморфизм a <> b
+[<Obsolete ("Используйте Изоморфизм<'a, 'b> вместо этого.")>]
+type Изо<'a,'b> = Изоморфизм<'a, 'b>
 
-/// Partial isomorphism of a <> b
-[<Obsolete ("Use Epimorphism<'a, 'b> instead.")>]
-type PIso<'a,'b> = Epimorphism<'a, 'b>
+/// Частичный изоморфизм a <> b
+[<Obsolete ("Используйте Эпиморфизм<'a, 'b> вместо этого.")>]
+type PIso<'a,'b> = Эпиморфизм<'a, 'b>
 
 /// Functions for composing lenses and prisms with other optics, which
 /// returns a new lens or prism based on the optic composed. Open `Aether.Operators`
@@ -51,64 +51,64 @@ module Compose =
     /// Static overloads of the composition function for lenses (>->).
     /// These functions do not generally need to be called directly, but will
     /// be used when calling Compose.optic.
-    type Lens =
-        | Lens with
+    type Линза =
+        | Линза with
 
-        static member (>->) (Lens, (g2, s2): Lens<'b,'c>) =
-            fun ((g1, s1): Lens<'a,'b>) ->
+        static member (>->) (Линза, (g2, s2): Линза<'b,'c>) =
+            fun ((g1, s1): Линза<'a,'b>) ->
                 (fun a -> g2 (g1 a)),
-                (fun c a -> s1 (s2 c (g1 a)) a) : Lens<'a,'c>
+                (fun c a -> s1 (s2 c (g1 a)) a) : Линза<'a,'c>
 
-        static member (>->) (Lens, (g2, s2): Prism<'b,'c>) =
-            fun ((g1, s1): Lens<'a,'b>) ->
+        static member (>->) (Линза, (g2, s2): Призма<'b,'c>) =
+            fun ((g1, s1): Линза<'a,'b>) ->
                 (fun a -> g2 (g1 a)),
-                (fun c a -> s1 (s2 c (g1 a)) a) : Prism<'a,'c>
+                (fun c a -> s1 (s2 c (g1 a)) a) : Призма<'a,'c>
 
-        static member (>->) (Lens, (f, t): Isomorphism<'b,'c>) =
-            fun ((g, s): Lens<'a,'b>) ->
+        static member (>->) (Линза, (f, t): Изоморфизм<'b,'c>) =
+            fun ((g, s): Линза<'a,'b>) ->
                 (fun a -> f (g a)),
-                (fun c a -> s (t c) a) : Lens<'a,'c>
+                (fun c a -> s (t c) a) : Линза<'a,'c>
 
-        static member (>->) (Lens, (f, t): Epimorphism<'b,'c>) =
-            fun ((g, s): Lens<'a,'b>) ->
+        static member (>->) (Линза, (f, t): Эпиморфизм<'b,'c>) =
+            fun ((g, s): Линза<'a,'b>) ->
                 (fun a -> f (g a)),
-                (fun c a -> s (t c) a) : Prism<'a,'c>
+                (fun c a -> s (t c) a) : Призма<'a,'c>
 
-    /// Compose a lens with an optic or morphism.
-    let inline lens l o =
-        (Lens >-> o) l
+    /// Собирает линзу с оптикой или морфизмом.
+    let inline линза л о =
+        (Линза >-> о) л
 
     /// Static overloads of the composition function for prisms (>?>).
     /// These functions do not generally need to be called directly, but will
     /// be used when calling Compose.optic.
-    type Prism =
-        | Prism with
+    type Призма =
+        | Призма with
 
-        static member (>?>) (Prism, (g2, s2): Lens<'b,'c>) =
-            fun ((g1, s1): Prism<'a,'b>) ->
+        static member (>?>) (Призма, (g2, s2): Линза<'b,'c>) =
+            fun ((g1, s1): Призма<'a,'b>) ->
                 (fun a -> Option.map g2 (g1 a)),
                 (fun c a -> Option.map (s2 c) (g1 a) |> function | Some b -> s1 b a
-                                                                 | _ -> a) : Prism<'a,'c>
+                                                                 | _ -> a) : Призма<'a,'c>
 
-        static member (>?>) (Prism, (g2, s2): Prism<'b,'c>) =
-            fun ((g1, s1): Prism<'a,'b>) ->
+        static member (>?>) (Призма, (g2, s2): Призма<'b,'c>) =
+            fun ((g1, s1): Призма<'a,'b>) ->
                 (fun a -> Option.bind g2 (g1 a)),
                 (fun c a -> Option.map (s2 c) (g1 a) |> function | Some b -> s1 b a
-                                                                 | _ -> a) : Prism<'a,'c>
+                                                                 | _ -> a) : Призма<'a,'c>
 
-        static member (>?>) (Prism, (f, t): Isomorphism<'b,'c>) =
-            fun ((g, s): Prism<'a,'b>) ->
+        static member (>?>) (Призма, (f, t): Изоморфизм<'b,'c>) =
+            fun ((g, s): Призма<'a,'b>) ->
                 (fun a -> Option.map f (g a)),
-                (fun c a -> s (t c) a) : Prism<'a,'c>
+                (fun c a -> s (t c) a) : Призма<'a,'c>
 
-        static member (>?>) (Prism, (f, t): Epimorphism<'b,'c>) =
-            fun ((g, s): Prism<'a,'b>) ->
+        static member (>?>) (Призма, (f, t): Эпиморфизм<'b,'c>) =
+            fun ((g, s): Призма<'a,'b>) ->
                 (fun a -> Option.bind f (g a)),
-                (fun c a -> s (t c) a) : Prism<'a,'c>
+                (fun c a -> s (t c) a) : Призма<'a,'c>
 
-    /// Compose a prism with an optic or morphism.
-    let inline prism p o =
-        (Prism >?> o) p
+    /// Собирает призму с оптикой или морфизмом.
+    let inline призма p o =
+        (Призма >?> o) p
 
     (* Obsolete
 
@@ -120,148 +120,148 @@ module Compose =
     /// Compose a lens with a lens, giving a lens.
     [<Obsolete ("Use Compose.lens instead.")>]
     let inline lensWithLens l1 l2 =
-        lens l1 l2
+        линза l1 l2
 
     /// Compose a lens with a prism, giving a prism.
     [<Obsolete ("Use Compose.lens instead.")>]
     let inline lensWithPrism l1 p1 =
-        lens l1 p1
+        линза l1 p1
 
     /// Compose a lens with an isomorphism, giving a lens.
     [<Obsolete ("Use Compose.lens instead.")>]
     let inline lensWithIsomorphism l1 i1 =
-        lens l1 i1
+        линза l1 i1
 
     /// Compose a lens with a partial isomorphism, giving a prism.
     [<Obsolete ("Use Compose.lens instead.")>]
     let inline lensWithPartialIsomorphism l1 e1 =
-        lens l1 e1
+        линза l1 e1
 
     /// Compose a prism and a lens, giving a prism.
     [<Obsolete ("Use Compose.prism instead.")>]
     let inline prismWithLens p1 l1 =
-        prism p1 l1
+        призма p1 l1
 
     /// Compose a prism with a prism, giving a prism.
     [<Obsolete ("Use Compose.prism instead.")>]
     let inline prismWithPrism p1 p2 =
-        prism p1 p2
+        призма p1 p2
 
     /// Compose a prism with an isomorphism, giving a prism.
     [<Obsolete ("Use Compose.prism instead.")>]
     let inline prismWithIsomorphism p1 i1 =
-        prism p1 i1
+        призма p1 i1
 
     /// Compose a prism with a partial isomorphism, giving a prism.
     [<Obsolete ("Use Compose.prism instead.")>]
     let inline prismWithPartialIsomorphism p1 e1 =
-        prism p1 e1
+        призма p1 e1
 
     /// Compose a total lens and a total lens, giving a total lens
     [<Obsolete ("Use Compose.lens instead.")>]
-    let totalLensTotalLens (l1: Lens<'a,'b>) (l2: Lens<'b,'c>) : Lens<'a,'c> =
-        lens l1 l2
+    let totalLensTotalLens (l1: Линза<'a,'b>) (l2: Линза<'b,'c>) : Линза<'a,'c> =
+        линза l1 l2
 
     /// Compose a total lens and a partial lens, giving a partial lens
     [<Obsolete ("Use Compose.lens instead.")>]
-    let totalLensPartialLens (l1: Lens<'a,'b>) (p1: Prism<'b,'c>) : Prism<'a,'c> =
-        lens l1 p1
+    let totalLensPartialLens (l1: Линза<'a,'b>) (p1: Призма<'b,'c>) : Призма<'a,'c> =
+        линза l1 p1
 
     /// Compose a partial lens and a total lens, giving a partial lens
     [<Obsolete ("Use Compose.prism instead.")>]
-    let partialLensTotalLens (p1: Prism<'a,'b>) (l1: Lens<'b,'c>) : Prism<'a,'c> =
-        prism p1 l1
+    let partialLensTotalLens (p1: Призма<'a,'b>) (l1: Линза<'b,'c>) : Призма<'a,'c> =
+        призма p1 l1
 
     /// Compose two partial lenses, giving a partial lens
     [<Obsolete ("Use Compose.prism instead.")>]
-    let partialLensPartialLens (p1: Prism<'a,'b>) (p2: Prism<'b,'c>) : Prism<'a,'c> =
-        prism p1 p2
+    let partialLensPartialLens (p1: Призма<'a,'b>) (p2: Призма<'b,'c>) : Призма<'a,'c> =
+        призма p1 p2
 
     /// Compose a total lens with a total isomorphism, giving a total lens
     [<Obsolete ("Use Compose.lens instead.")>]
-    let totalLensTotalIsomorphism (l1: Lens<'a,'b>) (i1: Isomorphism<'b,'c>) : Lens<'a,'c> =
-        lens l1 i1
+    let totalLensTotalIsomorphism (l1: Линза<'a,'b>) (i1: Изоморфизм<'b,'c>) : Линза<'a,'c> =
+        линза l1 i1
 
     /// Compose a total lens with a partial isomorphism, giving a partial lens
     [<Obsolete ("Use Compose.lens instead.")>]
-    let totalLensPartialIsomorphism (l1: Lens<'a,'b>) (p1: Epimorphism<'b,'c>) : Prism<'a,'c> =
-        lens l1 p1
+    let totalLensPartialIsomorphism (l1: Линза<'a,'b>) (p1: Эпиморфизм<'b,'c>) : Призма<'a,'c> =
+        линза l1 p1
 
     /// Compose a partial lens with a total isomorphism, giving a partial lens
     [<Obsolete ("Use Compose.prism instead.")>]
-    let partialLensTotalIsomorphism (p1: Prism<'a,'b>) (i1: Isomorphism<'b, 'c>) : Prism<'a,'c> =
-        prism p1 i1
+    let partialLensTotalIsomorphism (p1: Призма<'a,'b>) (i1: Изоморфизм<'b, 'c>) : Призма<'a,'c> =
+        призма p1 i1
 
     /// Compose a partial lens with a partial isomorphism, giving a partial lens
     [<Obsolete ("Use Compose.prism instead.")>]
-    let partialLensPartialIsomorphism (p1: Prism<'a,'b>) (e1: Epimorphism<'b,'c>) : Prism<'a,'c> =
-        prism p1 e1
+    let partialLensPartialIsomorphism (p1: Призма<'a,'b>) (e1: Эпиморфизм<'b,'c>) : Призма<'a,'c> =
+        призма p1 e1
 
 /// Functions for using optics to operate on data structures, using the basic optic
 /// operations of get, set and map. The functions are overloaded to take either lenses or
 /// prisms, with the return type being inferred.
 [<RequireQualifiedAccess>]
-module Optic =
+module Оптика =
 
     /// Static overloads of the optic get function (^.). These functions do not generally
     /// need to be called directly, but will be used when calling Optic.get.
-    type Get =
-        | Get with
+    type Получить =
+        | Получить with
 
-        static member (^.) (Get, (g, _): Lens<'a,'b>) =
+        static member (^.) (Получить, (g, _): Линза<'a,'b>) =
             fun (a: 'a) ->
                 g a : 'b
 
-        static member (^.) (Get, (g, _): Prism<'a,'b>) =
+        static member (^.) (Получить, (g, _): Призма<'a,'b>) =
             fun (a: 'a) ->
                 g a : 'b option
 
     /// Get a value using an optic.
-    let inline get optic target =
-        (Get ^. optic) target
+    let inline получить оптика target =
+        (Получить ^. оптика) target
 
     /// Static overloads of the optic set function (^=). These functions do
     /// not generally need to be called directly, but will be used when calling
     /// Optic.set.
-    type Set =
-        | Set with
+    type Установить =
+        | Установить with
 
-        static member (^=) (Set, (_, s): Lens<'a,'b>) =
+        static member (^=) (Установить, (_, s): Линза<'a,'b>) =
             fun (b: 'b) ->
                 s b : 'a -> 'a
 
-        static member (^=) (Set, (_, s): Prism<'a,'b>) =
+        static member (^=) (Установить, (_, s): Призма<'a,'b>) =
             fun (b: 'b) ->
                 s b : 'a -> 'a
 
-    /// Set a value using an optic.
-    let inline set optic value =
-        (Set ^= optic) value
+    /// Установить значение используя оптику.
+    let inline установить оптика значение =
+        (Установить ^= оптика) значение
 
     /// Static overloads of the optic map function (%=). These functions do not generally
     /// need to be called directly, but will be used when calling Optic.map.
-    type Map =
-        | Map with
+    type Отображение =
+        | Отображение with
 
-        static member (^%) (Map, (g, s): Lens<'a,'b>) =
+        static member (^%) (Отображение, (g, s): Линза<'a,'b>) =
             fun (f: 'b -> 'b) ->
                 (fun a -> s (f (g a)) a) : 'a -> 'a
 
-        static member (^%) (Map, (g, s): Prism<'a,'b>) =
+        static member (^%) (Отображение, (g, s): Призма<'a,'b>) =
             fun (f: 'b -> 'b) ->
                 (fun a -> Option.map f (g a) |> function | Some b -> s b a
                                                          | _ -> a) : 'a -> 'a
 
     /// Modify a value using an optic.
-    let inline map optic f =
-        (Map ^% optic) f
+    let inline отобразить оптика f =
+        (Отображение ^% оптика) f
 
 /// Functions for creating or using lenses.
 [<RequireQualifiedAccess>]
-module Lens =
+module Линза =
 
     /// Converts an isomorphism into a lens.
-    let ofIsomorphism ((f, t): Isomorphism<'a,'b>) : Lens<'a,'b> =
+    let ofIsomorphism ((f, t): Изоморфизм<'a,'b>) : Линза<'a,'b> =
         f, (fun b _ -> t b)
 
     (* Obsolete
@@ -272,46 +272,46 @@ module Lens =
        To be removed for 9.x releases. *)
 
     /// Get a value using a lens.
-    [<Obsolete ("Use Optic.get instead.")>]
-    let inline get l =
-        Optic.get l
+    [<Obsolete ("Use Оптика.получить instead.")>]
+    let inline получить l =
+        Оптика.получить l
 
     /// Get a value option using a partial lens
-    [<Obsolete ("Use Optic.get instead.")>]
-    let getPartial (p: Prism<'a,'b>) =
-        Optic.get p
+    [<Obsolete ("Use Оптика.получить instead.")>]
+    let получитьЧастично (p: Призма<'a,'b>) =
+        Оптика.получить p
 
     /// Get a value or a default using a partial lens
     [<Obsolete ("Use Optic.get instead. Compose it with some Option.orElse implementation, not provided by Aether.")>]
-    let getPartialOrElse (p: Prism<'a,'b>) =
-        fun b -> Optic.get p >> (function | Some b -> b | _ -> b)
+    let getPartialOrElse (p: Призма<'a,'b>) =
+        fun b -> Оптика.получить p >> (function | Some b -> b | _ -> b)
 
     /// Set a value using a lens.
-    [<Obsolete ("Use Optic.set instead.")>]
-    let inline set l =
-        Optic.set l
+    [<Obsolete ("Use Оптика.установить instead.")>]
+    let inline установить l =
+        Оптика.установить l
 
     /// Set a value using a partial lens
     [<Obsolete ("Use Optic.set instead.")>]
-    let setPartial (p: Prism<'a,'b>) =
-        Optic.set p
+    let установитьЧастично (p: Призма<'a,'b>) =
+        Оптика.установить p
 
     /// Map a value using a lens.
-    [<Obsolete ("Use Optic.map instead.")>]
-    let inline map l =
-        Optic.map l
+    [<Obsolete ("Use Оптика.отобразить instead.")>]
+    let inline отобразить l =
+        Оптика.отобразить l
 
     /// Modify a value using a partial lens
-    [<Obsolete ("Use Optic.map instead.")>]
-    let mapPartial (p: Prism<'a,'b>) =
-        Optic.map p
+    [<Obsolete ("Use Оптика.отобразить instead.")>]
+    let отобразитьЧастично (p: Призма<'a,'b>) =
+        Оптика.отобразить p
 
 /// Functions for creating or using prisms.
 [<RequireQualifiedAccess>]
 module Prism =
 
     /// Converts an epimorphism into a prism.
-    let ofEpimorphism ((f, t): Epimorphism<'a,'b>) : Prism<'a,'b> =
+    let ofEpimorphism ((f, t): Эпиморфизм<'a,'b>) : Призма<'a,'b> =
         f, (fun b _ -> t b)
 
     (* Obsolete
@@ -323,18 +323,18 @@ module Prism =
 
     /// Get a value using a prism.
     [<Obsolete ("Use Optic.get instead.")>]
-    let inline get p =
-        Optic.get p
+    let inline получить p =
+        Оптика.получить p
 
     /// Set a value using a prism.
     [<Obsolete ("Use Optic.set instead.")>]
-    let inline set p =
-        Optic.set p
+    let inline установить p =
+        Оптика.установить p
 
     /// Map a value using a prism.
     [<Obsolete ("Use Optic.map instead.")>]
-    let inline map p =
-        Optic.map p
+    let inline отобразить p =
+        Оптика.отобразить p
 
 /// Various optics implemented for common types such as tuples,
 /// lists and maps, along with an identity lens.
@@ -342,21 +342,21 @@ module Prism =
 module Optics =
 
     // Lens for the identity function (does not change the focus of operation).
-    let id_ : Lens<'a,'a> =
+    let id_ : Линза<'a,'a> =
         (fun x -> x),
         (fun x _ -> x)
 
     /// Isomorphism between a boxed and unboxed type.
-    let box_<'a> : Isomorphism<obj,'a> =
+    let box_<'a> : Изоморфизм<obj,'a> =
         unbox<'a>, box
 
     /// Lens to the first item of a tuple.
-    let fst_ : Lens<('a * 'b),'a> =
+    let fst_ : Линза<('a * 'b),'a> =
         fst,
         (fun a t -> a, snd t)
 
     /// Lens to the second item of a tuple.
-    let snd_ : Lens<('a * 'b),'b> =
+    let snd_ : Линза<('a * 'b),'b> =
         snd,
         (fun b t -> fst t, b)
 
@@ -364,7 +364,7 @@ module Optics =
     module Array =
 
         /// Isomorphism to an list.
-        let list_ : Isomorphism<'v[], 'v list> =
+        let list_ : Изоморфизм<'v[], 'v list> =
             Array.toList,
             Array.ofList
 
@@ -372,7 +372,7 @@ module Optics =
     module Choice =
 
         /// Prism to Choice1Of2.
-        let choice1Of2_ : Prism<Choice<_,_>, _> =
+        let choice1Of2_ : Призма<Choice<_,_>, _> =
             (fun x ->
                 match x with
                 | Choice1Of2 v -> Some v
@@ -383,7 +383,7 @@ module Optics =
                 | _ -> x)
 
         /// Prism to Choice2Of2.
-        let choice2Of2_ : Prism<Choice<_,_>, _> =
+        let choice2Of2_ : Призма<Choice<_,_>, _> =
             (fun x ->
                 match x with
                 | Choice2Of2 v -> Some v
@@ -397,7 +397,7 @@ module Optics =
     module Result =
 
         /// Prism to Ok.
-        let ok_ : Prism<Result<_,_>, _> =
+        let ok_ : Призма<Result<_,_>, _> =
             (fun x ->
                 match x with
                 | Ok v -> Some v
@@ -408,7 +408,7 @@ module Optics =
                 | _ -> x)
 
         /// Prism to Error.
-        let error_ : Prism<Result<_,_>, _> =
+        let error_ : Призма<Result<_,_>, _> =
             (fun x ->
                 match x with
                 | Error v -> Some v
@@ -422,7 +422,7 @@ module Optics =
     module List =
 
         /// Prism to the head of a list.
-        let head_ : Prism<'v list, 'v> =
+        let head_ : Призма<'v list, 'v> =
             (function | h :: _ -> Some h
                       | _ -> None),
             (fun v ->
@@ -430,7 +430,7 @@ module Optics =
                          | l -> l)
 
         /// Prism to an indexed position in a list.
-        let pos_ (i: int) : Prism<'v list, 'v> =
+        let pos_ (i: int) : Призма<'v list, 'v> =
 #if NET35
             (function | l when List.length l > i -> Some (List.nth l i)
 #else
@@ -441,7 +441,7 @@ module Optics =
                 List.mapi (fun i' x -> if i = i' then v else x) l)
 
         /// Prism to the tail of a list.
-        let tail_ : Prism<'v list, 'v list> =
+        let tail_ : Призма<'v list, 'v list> =
             (function | _ :: t -> Some t
                       | _ -> None),
             (fun t ->
@@ -449,7 +449,7 @@ module Optics =
                          | [] -> [])
 
         /// Isomorphism to an array.
-        let array_ : Isomorphism<'v list, 'v[]> =
+        let array_ : Изоморфизм<'v list, 'v[]> =
             List.toArray,
             List.ofArray
 
@@ -457,13 +457,13 @@ module Optics =
     module Map =
 
         /// Prism to a value associated with a key in a map.
-        let key_ (k: 'k) : Prism<Map<'k,'v>,'v> =
+        let key_ (k: 'k) : Призма<Map<'k,'v>,'v> =
             Map.tryFind k,
             (fun v x ->
                 if Map.containsKey k x then Map.add k v x else x)
 
         /// Lens to a value option associated with a key in a map.
-        let value_ (k: 'k) : Lens<Map<'k,'v>, 'v option> =
+        let value_ (k: 'k) : Линза<Map<'k,'v>, 'v option> =
             Map.tryFind k,
             (fun v x ->
                 match v with
@@ -471,12 +471,12 @@ module Optics =
                 | _ -> Map.remove k x)
 
         /// Weak Isomorphism to an array of key-value pairs.
-        let array_ : Isomorphism<Map<'k,'v>, ('k * 'v)[]> =
+        let array_ : Изоморфизм<Map<'k,'v>, ('k * 'v)[]> =
             Map.toArray,
             Map.ofArray
 
         /// Weak Isomorphism to a list of key-value pairs.
-        let list_ : Isomorphism<Map<'k,'v>, ('k * 'v) list> =
+        let list_ : Изоморфизм<Map<'k,'v>, ('k * 'v) list> =
             Map.toList,
             Map.ofList
 
@@ -484,7 +484,7 @@ module Optics =
     module Option =
 
         /// Prism to the value in an Option.
-        let value_ : Prism<'v option, 'v> =
+        let value_ : Призма<'v option, 'v> =
             id,
             (fun v ->
                 function | Some _ -> Some v
@@ -499,64 +499,64 @@ module Optics =
 
 /// Identity lens returning the original item regardless of modifiction
 [<Obsolete ("Use Optics.id_ instead.")>]
-let id_ : Lens<'a,'a> =
+let id_ : Линза<'a,'a> =
     Optics.id_
 
 /// First item of a tuple giving a total lens
 [<Obsolete ("Use Optics.fst_ instead.")>]
-let fst_ : Lens<('a * 'b),'a> =
+let fst_ : Линза<('a * 'b),'a> =
     Optics.fst_
 
 /// Second item of a tuple giving a total lens
 [<Obsolete ("Use Optics.snd_ instead.")>]
-let snd_ : Lens<('a * 'b),'b> =
+let snd_ : Линза<('a * 'b),'b> =
     Optics.snd_
 
 /// Head of a list giving a partial lens
 [<Obsolete ("Use Optics.List.head_ instead.")>]
-let head_ : Prism<'v list, 'v> =
+let head_ : Призма<'v list, 'v> =
     Optics.List.head_
 
 /// Position of a list giving a partial lens
 [<Obsolete ("Use Optics.List.pos_ instead.")>]
-let pos_ (i: int) : Prism<'v list, 'v> =
+let pos_ (i: int) : Призма<'v list, 'v> =
     Optics.List.pos_ i
 
 /// Tail of a list giving a partial lens
 [<Obsolete ("Use Optics.List.tail_ instead.")>]
-let tail_ : Prism<'v list, 'v list> =
+let tail_ : Призма<'v list, 'v list> =
     Optics.List.tail_
 
 /// Key of a map giving a partial lens
 [<Obsolete ("Use Optics.Map.key_ instead.")>]
-let key_ (k: 'k) : Prism<Map<'k,'v>,'v> =
+let key_ (k: 'k) : Призма<Map<'k,'v>,'v> =
     Optics.Map.key_ k
 
 
 /// Optional custom operators for working with optics. Provides more concise
 /// syntactic options for working with the functions in the `Compose` and
 /// `Optic` modules.
-module Operators =
+module Операторы =
 
     /// Compose a lens with an optic or morphism.
-    let inline (>->) l o =
-        Compose.lens l o
+    let inline (>->) л о =
+        Compose.линза л о
 
     /// Compose a prism with an optic or morphism.
-    let inline (>?>) p o =
-        Compose.prism p o
+    let inline (>?>) п о =
+        Compose.призма п о
 
     /// Get a value using an optic.
-    let inline (^.) target optic =
-        Optic.get optic target
+    let inline (^.) target оптика =
+        Оптика.получить оптика target
 
     /// Set a value using an optic.
-    let inline (^=) value optic =
-        Optic.set optic value
+    let inline (^=) значение оптика =
+        Оптика.установить оптика значение
 
     /// Modify a value using an optic.
-    let inline (^%) f optic =
-        Optic.map optic f
+    let inline (^%) f оптика =
+        Оптика.отобразить оптика f
 
     (* Obsolete
 
@@ -568,59 +568,59 @@ module Operators =
     /// Compose a lens and a lens, giving a lens.
     [<Obsolete ("Use >-> instead.")>]
     let inline (>-->) l1 l2 =
-        Compose.lens l1 l2
+        Compose.линза l1 l2
 
     /// Compose a lens and a prism, giving a prism.
     [<Obsolete ("Use >-> instead.")>]
     let inline (>-?>) l1 l2 =
-        Compose.lens l1 l2
+        Compose.линза l1 l2
 
     /// Compose a lens with an isomorphism, giving a lens.
     [<Obsolete ("Use >-> instead.")>]
     let inline (<-->) l i =
-        Compose.lens l i
+        Compose.линза l i
 
     /// Compose a total lens with a partial isomorphism, giving a prism.
     [<Obsolete ("Use >-> instead.")>]
     let inline (<-?>) l i =
-        Compose.lens l i
+        Compose.линза l i
 
     /// Compose a prism and a lens, giving a prism.
     [<Obsolete ("Use >?> instead.")>]
     let inline (>?->) l1 l2 =
-        Compose.prism l1 l2
+        Compose.призма l1 l2
 
     /// Compose a prism with a prism, giving a prism.
     [<Obsolete ("Use >?> instead.")>]
     let inline (>??>) l1 l2 =
-        Compose.prism l1 l2
+        Compose.призма l1 l2
 
     /// Compose a prism with an isomorphism, giving a prism.
     [<Obsolete ("Use >?> instead.")>]
     let inline (<?->) l i =
-        Compose.prism l i
+        Compose.призма l i
 
     /// Compose a prism with a partial isomorphism, giving a prism.
     [<Obsolete ("Use >?> instead.")>]
     let inline (<??>) l i =
-        Compose.prism l i
+        Compose.призма l i
 
     /// Get a value using a prism.
     [<Obsolete ("Use ^. instead.")>]
     let inline (^?.) a p =
-        Optic.get p a
+        Оптика.получить p a
 
     /// Set a value using a prism.
     [<Obsolete ("Use ^= instead.")>]
     let inline (^?=) b p =
-        Optic.set p b
+        Оптика.установить p b
 
     /// Modify a value using a total lens
     [<Obsolete ("Use ^% instead.")>]
-    let (^%=) (f: 'b -> 'b) (l: Lens<'a,'b>) : 'a -> 'a =
-        Optic.map l f
+    let (^%=) (f: 'b -> 'b) (l: Линза<'a,'b>) : 'a -> 'a =
+        Оптика.отобразить l f
 
     /// Modify a value using a prism.
     [<Obsolete ("Use ^% instead.")>]
     let inline (^?%=) f p =
-        Optic.map p f
+        Оптика.отобразить p f
