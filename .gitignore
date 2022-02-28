@@ -184,3 +184,6 @@ FakesAssemblies/
 
 # FSharp Lint
 *.FSharpLint
+
+.ionide/
+.vs/

@@ -1,4 +1,4 @@
-﻿module Aether.Testing
+module Aether.Testing
 
 open FsCheck
 open Swensen.Unquote
